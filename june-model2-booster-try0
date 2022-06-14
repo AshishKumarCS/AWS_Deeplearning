@@ -1,0 +1,50 @@
+def reward_function(params):
+    # Example of rewarding the agent to stay inside the two borders of the track
+    
+    # Read input parameters
+    all_wheels_on_track = params['all_wheels_on_track']
+    distance_from_center = params['distance_from_center']
+    track_width = params['track_width']
+    speed= params['speed']
+    steering = abs(params['steering_angle'])
+    progress = params['progress']
+    max_movement = 15
+    min_speed = 1.2
+
+    marker_1=0.1* track_width
+    marker_2 = 0.175*track_width
+    marker_3 =0.25*track_width
+    marker_4=0.375*track_width
+    marker_5=0.5*track_width
+    distance_from_border = 0.5 * track_width - distance_from_center
+	
+    # Give a very low reward by default
+    reward = 1e-3
+    booster = 1e-3
+    # Give a high reward if no wheels go off the track and
+    if distance_from_center <= marker_1 and steering <= max_movement and (distance_from_center >=marker_1 and distance_from_center<=marker_3) and progress > 0.8:
+        booster = 1 * progress
+    elif distance_from_center <= marker_2 and progress > 0.7:
+        booster = 0.2 * progress
+    elif distance_from_center <= marker_3 and progress > 0.6:
+        booster = 0.1 * progress
+    elif distance_from_center <= marker_4:
+        booster = -1 * progress
+    elif distance_from_center <= marker_5:		
+        booster = -2 * progress
+    else:
+        booster = -3 * progress
+        
+    count = 0
+    if all_wheels_on_track and (0.175*track_width - distance_from_center) >= 0.01 and distance_from_border >=0.18 and speed > min_speed:
+        reward = 1 * (progress + (max(speed, min_speed))) + booster
+    elif not all_wheels_on_track or distance_from_border < 0.18:
+        if not all_wheels_on_track:
+            count +=1 
+        if distance_from_border < 0.18:
+            reward =-2 
+    if count > 0:
+        reward = -10
+	
+    # Always return a float value
+    return float(reward)
